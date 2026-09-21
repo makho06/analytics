@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Course Feedback Experiment</title>
+  <style>
+    :root { --navy:#142744; --gold:#be9646; --cream:#f8f5ed; --paper:#fffdf7; --muted:#68727e; --line:rgba(20,39,68,.16); --red:#b95b4a; --blue:#b9cedc; --shadow:0 16px 36px rgba(20,39,68,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--cream); color:var(--navy); font-family:Aptos,Arial,sans-serif; }
+    .page { max-width:920px; margin:auto; padding:46px 28px 58px; }
+    .kicker { color:var(--gold); font-size:12px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    h1,h2 { font-family:Georgia,serif; margin:0; }
+    h1 { font-size:clamp(34px,5vw,58px); line-height:1.04; margin-top:10px; }
+    .intro { max-width:660px; color:var(--muted); font-size:17px; line-height:1.5; margin:16px 0 25px; }
+    .rule { height:2px; background:var(--gold); margin-bottom:26px; }
+    .experiment { position:relative; background:var(--paper); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+    .experiment::before { content:''; position:absolute; left:0; top:0; bottom:0; width:9px; background:var(--gold); }
+    .content { padding:34px 40px 38px; }
+    .assigned { color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; font-weight:800; }
+    .question { margin:12px 0 24px; font:32px/1.18 Georgia,serif; }
+    .building { display:none; margin:0 0 24px; border-radius:14px; overflow:hidden; border:1px solid var(--line); }
+    .building img { display:block; width:100%; height:170px; object-fit:cover; object-position:center 56%; }
+    .response-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+    .response { min-height:82px; border:1px solid var(--line); border-radius:13px; background:#f5f1e7; color:var(--navy); cursor:pointer; padding:12px 7px; font:700 15px Georgia,serif; transition:.16s ease; }
+    .response:hover { transform:translateY(-2px); border-color:var(--gold); background:#f1e2bb; }
+    .response.selected { background:var(--navy); color:var(--cream); border-color:var(--navy); box-shadow:0 6px 14px rgba(20,39,68,.18); }
+    .response .number { display:block; font-size:26px; margin-bottom:6px; }
+    .submit-row { display:flex; align-items:center; gap:14px; margin-top:23px; }
+    #submit { border:1px solid var(--navy); border-radius:11px; padding:11px 18px; background:var(--navy); color:var(--cream); cursor:pointer; font:700 14px Georgia,serif; }
+    #submit:disabled { opacity:.45; cursor:not-allowed; }
+    .status { color:var(--muted); font-size:13px; line-height:1.4; }
+    .note { margin:25px 0 0; color:var(--muted); font-size:12px; line-height:1.45; }
+    .thankyou { display:none; }
+    .thankyou h2 { font-size:34px; margin-bottom:10px; }
+    .thankyou p { color:var(--muted); line-height:1.5; margin:0; }
+    .footer { color:var(--muted); font-size:11px; line-height:1.45; margin-top:18px; }
+
+    /* Layout A: restrained paper survey. Layout B: the same content with a stronger visual invitation. */
+    .layout-b .experiment { background:#edf2f3; border-color:rgba(20,39,68,.24); }
+    .layout-b .experiment::before { width:100%; height:9px; bottom:auto; background:var(--navy); }
+    .layout-b .content { padding-top:43px; }
+    .layout-b .assigned { color:var(--red); }
+    .layout-b .building { display:block; }
+    .layout-b .question { font-size:38px; }
+    .layout-b .response { background:var(--paper); border-color:rgba(20,39,68,.22); }
+    .layout-b .response:hover { background:#dbe8eb; }
+    .layout-b .response.selected { background:var(--red); border-color:var(--red); }
+    @media (max-width:600px) { .page { padding:30px 16px 40px; } .content { padding:28px 24px 30px; } .response-grid { gap:6px; } .response { min-height:75px; font-size:12px; } .response .number { font-size:22px; } .question,.layout-b .question { font-size:29px; } .submit-row { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <main class="page" id="page">
+    <div class="kicker">MBA Analytics · Statistical Sampling</div>
+    <h1>A/B Testing on Page Layout</h1>
+    <p class="intro">This is a simple demonstration of A/B testing in the context of web page layout. You have been randomly assigned to one of two page layouts. Please answer the question below. </p>
+    <div class="rule"></div>
+
+    <section class="experiment" id="experiment">
+      <div class="content" id="survey">
+        <div class="building"><img src="oxford_business_school_building.png" alt="Oxford business school building"></div>
+        <div class="question">How much do you enjoy Oxford so far (1 = lowest, 5 = highest)? </div>
+        <div class="response-grid" role="radiogroup" aria-label="Course satisfaction">
+          <button class="response" data-value="1" role="radio" aria-checked="false"><span class="number">1</span> </button>
+          <button class="response" data-value="2" role="radio" aria-checked="false"><span class="number">2</span> </button>
+          <button class="response" data-value="3" role="radio" aria-checked="false"><span class="number">3</span> </button>
+          <button class="response" data-value="4" role="radio" aria-checked="false"><span class="number">4</span> </button>
+          <button class="response" data-value="5" role="radio" aria-checked="false"><span class="number">5</span> </button>
+        </div>
+        <div class="submit-row">
+          <button id="submit" disabled>Submit response</button>
+          <span class="status" id="status">Select one response to continue.</span>
+        </div>
+        <p class="note">Only one response can be submitted from this browser. The layout is randomized before the question appears.</p>
+      </div>
+      <div class="content thankyou" id="thankyou" aria-live="polite">
+        <h2>Thank you.</h2>
+        <p>Your response has been recorded. This page is part of a small classroom demonstration of random assignment and sampling variability.</p>
+      </div>
+    </section>
+    
+  </main>
+
+  <script>
+    // Set this to a POST endpoint when you are ready to collect responses centrally.
+    // The endpoint should accept JSON: { variant, response, timestamp, sessionId }.
+    const COLLECTION_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwuuQgq2sfK12hAdz6HCTqhuypYur-EDIlshxhUWmxG2CaUdvhUphk6Qdw6kVMzrYE45g/exec';
+    // v2 starts a fresh local assignment now that central collection is enabled.
+    const STORAGE_KEY = 'oxford_course_feedback_ab_v2';
+    const $ = id => document.getElementById(id);
+    const existing = localStorage.getItem(STORAGE_KEY);
+    const assignment = existing ? JSON.parse(existing) : { variant: Math.random() < .5 ? 'A' : 'B', sessionId: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random() };
+    if (!existing) localStorage.setItem(STORAGE_KEY, JSON.stringify(assignment));
+    if (assignment.variant === 'B') $('page').classList.add('layout-b');
+    const choices = [...document.querySelectorAll('.response')];
+    let selected = null;
+    const submitted = Boolean(assignment.response);
+    if (submitted) showThankYou();
+    choices.forEach(button => button.addEventListener('click', () => {
+      if (submitted || assignment.response) return;
+      choices.forEach(item => { item.classList.remove('selected'); item.setAttribute('aria-checked', 'false'); });
+      button.classList.add('selected'); button.setAttribute('aria-checked', 'true');
+      selected = Number(button.dataset.value);
+      $('submit').disabled = false;
+      $('status').textContent = 'Ready to submit.';
+    }));
+    $('submit').addEventListener('click', async () => {
+      if (!selected || assignment.response) return;
+      const record = { variant: assignment.variant, response: selected, timestamp: new Date().toISOString(), sessionId: assignment.sessionId };
+      $('submit').disabled = true;
+      $('status').textContent = 'Recording response…';
+      try {
+        if (COLLECTION_ENDPOINT) {
+          await fetch(COLLECTION_ENDPOINT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(record) });
+        }
+        assignment.response = selected;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(assignment));
+        showThankYou();
+      } catch (error) {
+        $('submit').disabled = false;
+        $('status').textContent = 'The response could not be sent. Please try again.';
+      }
+    });
+    function showThankYou() {
+      $('survey').style.display = 'none';
+      $('thankyou').style.display = 'block';
+      $('modeNote').textContent = COLLECTION_ENDPOINT ? 'Your anonymous response was sent to the feedback database.' : 'Demonstration mode: the response was stored only in this browser.';
+    }
+  </script>
+</body>
+</html>
