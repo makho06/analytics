@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Court Trial Simulation</title>
+<style>
+:root{
+  --navy:#102a43;
+  --blue:#3f78b5;
+  --gold:#d4a72c;
+  --red:#c56b2c;
+  --ink:#263746;
+  --muted:#607487;
+  --paper:#f7f5ef;
+  --line:#d9e1e8;
+  --soft:#f1f5f8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+.page{max-width:1240px;margin:0 auto;padding:30px 36px 28px}
+.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-size:12px;font-weight:800}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:20px}
+.title{color:var(--navy);font-family:Georgia,serif;font-size:38px;margin:8px 0 5px}
+.subtitle{color:var(--muted);margin:0;font-size:15px;line-height:1.45;max-width:820px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;padding-top:10px}
+button{border:0;border-radius:8px;padding:12px 15px;font-weight:800;cursor:pointer;font-size:14px;background:#e8eef3;color:var(--navy)}
+button.primary{background:var(--navy);color:#fff}
+button:disabled{opacity:.55;cursor:default}
+.case-board{background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #102a4312;padding:20px}
+.case-head{display:flex;justify-content:space-between;align-items:center;gap:18px;padding-bottom:13px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.case-title{font-family:Georgia,serif;color:var(--navy);font-size:23px;margin:0}
+.case-id{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:750;font-size:13px}
+.scene{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin-bottom:18px}
+.scene-card{background:var(--soft);border-left:4px solid var(--gold);border-radius:6px;padding:14px 15px;min-height:94px}
+.scene-card h3{margin:0 0 6px;color:var(--navy);font-size:13px;text-transform:uppercase;letter-spacing:.09em}
+.scene-card p{margin:0;color:var(--ink);line-height:1.45;font-size:15px}
+.evidence-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.column{min-width:0}
+.column-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.column h3{font-family:Georgia,serif;color:var(--navy);font-size:21px;margin:0}
+.column .rule{height:3px;flex:1;border-radius:99px;background:var(--line)}
+.column.pro .rule{background:linear-gradient(90deg,var(--red),#f1c9b7)}
+.column.def .rule{background:linear-gradient(90deg,var(--blue),#cbdceb)}
+.evidence-stack{display:grid;gap:11px}
+.evidence{border:1px solid var(--line);border-radius:8px;padding:13px 14px 12px;background:#fff;min-height:92px;display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start}
+.icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:15px}
+.pro .icon{background:var(--red)}
+.def .icon{background:var(--blue)}
+.tag{font-size:11px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 5px}
+.evidence p{margin:0;font-size:15px;line-height:1.42}
+.empty-state{border:1px dashed #cbd6df;border-radius:8px;min-height:92px;padding:18px;color:var(--muted);font-size:14px;line-height:1.4;background:#fbfcfd}
+.questions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.question{background:#f7f9fb;border:1px solid var(--line);border-radius:8px;padding:14px 15px}
+.question .q-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:850;color:var(--gold);margin-bottom:5px}
+.question h3{font-family:Georgia,serif;color:var(--navy);font-size:22px;margin:0}
+.bridge{font-family:Georgia,serif;color:var(--navy);background:#fff;border-left:4px solid var(--gold);padding:13px 15px;border-radius:6px;margin-top:16px;font-size:17px;line-height:1.45}
+@media(max-width:900px){
+  .top,.scene,.evidence-layout,.questions{grid-template-columns:1fr;display:grid}
+  .controls{justify-content:flex-start}
+  .page{padding:24px 16px}
+  .title{font-size:30px}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="top">
+    <div>
+      <div class="eyebrow">MBA Analytics - Statistical Sampling</div>
+      <h1 class="title">Simulation: Making Decisions with Evidence</h1>
+      <p class="subtitle">In business, we often make decisions backed by statistical evidence. The process of evaluting statistical evidence is very similar to how a jury makes decisions in court. </p>
+    </div>
+    <div class="controls">
+      <button class="primary" id="newCase" type="button">Show evidence packet</button>
+    </div>
+  </div>
+
+  <section class="case-board">
+    <div class="case-head">
+      <h2 class="case-title">Anonymous murder trial</h2>
+      <div class="case-id" id="caseId">Case file -</div>
+    </div>
+
+    <div class="scene">
+      <div class="scene-card">
+        <h3>Scenario</h3>
+        <p>Two victims are found murdered outside one victim's home late at night. The police identified one victim's ex-spouse (the defendant) as a suspect. The defendant was finally arrested after a multi-day, multi-city chase. </p>
+      </div>
+      <div class="scene-card">
+        <h3>Instructions</h3>
+        <p>Read the evidence packet. As a member of the jury, you must evaluate the evidence and determine whether the defendant is guilty. </p>
+      </div>
+    </div>
+
+    <div class="evidence-layout">
+      <div class="column pro">
+        <div class="column-head">
+          <h3>Evidence supporting prosecution</h3>
+          <div class="rule"></div>
+        </div>
+        <div class="evidence-stack" id="proEvidence"></div>
+      </div>
+
+      <div class="column def">
+        <div class="column-head">
+          <h3>Evidence supporting defence</h3>
+          <div class="rule"></div>
+        </div>
+        <div class="evidence-stack" id="defEvidence"></div>
+      </div>
+    </div>
+
+    <div class="questions">
+      <div class="question">
+        <div class="q-label">Question 1</div>
+        <h3>Is the defendant guilty of murder?</h3>
+      </div>
+      <div class="question">
+        <div class="q-label">Question 2</div>
+        <h3>Did the defendant murder the victims?</h3>
+      </div>
+    </div>
+
+    <div class="bridge"><a href="https://forms.gle/uY69B8Qr53qEUWbk7" target="_blank"> Submit your responses.</a> </div>
+  </section>
+</main>
+
+<script>
+const prosecutionPool=[
+  ["Motive","One victim was the ex-spouse of the defendant, and the two had a troubled breakup."],
+  ["Forensic","Blood matching the defendant is found near the crime scene."],
+  ["Forensic","Blood matching a victim is found in places connected to the defendant."],
+  ["Object","A glove found at the defendant's property appears to match one found near the victims."],
+  ["Trace","Shoeprints at the scene appear consistent with an expensive shoe style owned by the defendant."],
+  ["Injury","The defendant was found to have a fresh cut shortly after the time of the murders."],
+  ["Behaviour","The defendant behaves unusually when police try to question him."],
+  ["Timeline","The defendant had no substantiated alibi."],
+  ["History","The defendant had documented history of conflict with one victim and prior police involvement."],
+  ["Opportunity","The defendant had access to locations connected with the victims."]
+];
+
+const defencePool=[
+  ["Witnesses","No eyewitness saw the murders."],
+  ["Missing evidence","The murder weapon was never found."],
+  ["Timeline","The exact timeline of events leading up to the murders, and the defendant's whereabouts before and after, is disputed."],
+  ["Handling","Some forensic evidence may have been mishandled or contaminated."],
+  ["Credibility","A key police investigator's credibility is challenged."],
+  ["Object","A glove found at the murder scene, allegedly belonging to the defendant, did not fit the defendant in court."],
+  ["Lab uncertainty","Defence lawyers argue that some forensic conclusions depend on interpretation rather than objective observation."],
+  ["Procedure","Defence lawyers suggest that some police officers handling the case might have had racial motive against the defendant."]
+];
+
+let caseNo=0;
+
+function shuffle(items){
+  const arr=[...items];
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function card([tag,copy],type,index){
+  const div=document.createElement("div");
+  div.className="evidence "+type;
+  div.innerHTML='<div class="icon"></div><div><div class="tag"></div><p></p></div>';
+  div.querySelector(".icon").textContent=index+1;
+  div.querySelector(".tag").textContent=tag;
+  div.querySelector("p").textContent=copy;
+  return div;
+}
+
+function drawCase(){
+  caseNo += 1;
+  const pro=shuffle(prosecutionPool).slice(0,5);
+  const def=shuffle(defencePool).slice(0,5);
+  const proBox=document.getElementById("proEvidence");
+  const defBox=document.getElementById("defEvidence");
+  proBox.replaceChildren(...pro.map((e,i)=>card(e,"pro",i)));
+  defBox.replaceChildren(...def.map((e,i)=>card(e,"def",i)));
+  document.getElementById("caseId").textContent="Case file "+String(caseNo).padStart(2,"0");
+  const button=document.getElementById("newCase");
+  button.disabled=true;
+  button.textContent="Evidence packet revealed";
+}
+
+function showEmptyState(){
+  document.getElementById("proEvidence").innerHTML='<div class="empty-state">Evidence will appear here after you click "Show evidence packet".</div>';
+  document.getElementById("defEvidence").innerHTML='<div class="empty-state">Evidence will appear here after you click "Show evidence packet".</div>';
+}
+
+document.getElementById("newCase").addEventListener("click",drawCase);
+showEmptyState();
+</script>
+</body>
+</html>
