@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Salary Sampling Lab</title>
+<style>
+:root{
+  --navy:#10243f;
+  --navy-2:#17365d;
+  --gold:#c89a2c;
+  --paper:#f6f1e7;
+  --ink:#243340;
+  --muted:#617180;
+  --line:#d9ddd7;
+  --white:#fffdf8;
+  --soft:#f3f5f6;
+  --women:#cf6440;
+  --men:#4d6f9b;
+  --overall:#2d978f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  color:var(--ink);
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(circle at 0% 0%,#fff7d8 0,transparent 24%),
+    radial-gradient(circle at 100% 12%,#e6eef5 0,transparent 22%),
+    linear-gradient(180deg,#f8f4eb 0,#f3eee4 100%);
+}
+.page{max-width:1320px;margin:0 auto;padding:30px 28px 34px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.hero{display:block;margin-bottom:22px}
+.title{
+  margin:8px 0 10px;
+  color:var(--navy);
+  font-family:Georgia,serif;
+  font-size:44px;
+  line-height:1.02;
+}
+.subtitle{max-width:820px;margin:0;color:var(--muted);font-size:16px;line-height:1.48}
+.shell{
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:rgba(255,253,248,.92);
+  box-shadow:0 16px 36px rgba(16,36,63,.08);
+}
+.tabbar{
+  display:flex;
+  gap:4px;
+  padding:12px 12px 0;
+  background:linear-gradient(180deg,#fbfaf5 0,#f7f3ea 100%);
+  border-bottom:1px solid var(--line);
+}
+.tab{
+  appearance:none;
+  border:0;
+  border-radius:16px 16px 0 0;
+  padding:15px 22px 14px;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:15px;
+  font-weight:800;
+}
+.tab.active{
+  background:var(--white);
+  color:var(--navy);
+  box-shadow:0 -1px 0 var(--line),1px 0 0 var(--line),-1px 0 0 var(--line);
+}
+.panel{display:none;padding:24px}
+.panel.active{display:block}
+.panel-grid{display:grid;grid-template-columns:340px 1fr;gap:22px}
+.sidebar{display:grid;gap:18px;align-content:start}
+.card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+}
+.card-title{
+  margin:0 0 10px;
+  color:var(--navy);
+  font-family:Georgia,serif;
+  font-size:27px;
+}
+.controls{display:grid;gap:12px}
+.control-grid{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.gender-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.control{display:grid;gap:6px}
+.control label{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--muted);
+}
+.control input{
+  width:100%;
+  border:1px solid #c1cad1;
+  border-radius:12px;
+  background:#fff;
+  color:var(--navy);
+  font-size:18px;
+  font-weight:800;
+  padding:12px 12px;
+}
+.control small{font-size:12px;color:var(--muted)}
+button{
+  border:0;
+  border-radius:12px;
+  padding:12px 16px;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+}
+.primary{background:var(--navy);color:#fff}
+.primary:hover{background:var(--navy-2)}
+.secondary{background:#fff;color:var(--navy);border:1px solid #b8c1ca}
+.secondary:disabled,.primary:disabled{opacity:.55;cursor:default}
+.sample-tag{font-size:13px;font-weight:800;color:var(--muted)}
+.stats-block{display:grid;gap:12px}
+.stats-main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.stats-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{
+  background:linear-gradient(180deg,#f8fafb 0,#f1f4f6 100%);
+  border:1px solid #e1e6ea;
+  border-radius:14px;
+  padding:12px 12px 11px;
+}
+.stat .label{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+}
+.stat .value{
+  margin-top:6px;
+  color:var(--navy);
+  font-size:24px;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.stat.compact .value{font-size:20px}
+.chart-card{
+  background:linear-gradient(180deg,#fcfcfa 0,#f4f7f8 100%);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+}
+.chart-note{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.45}
+.empty{
+  display:grid;
+  place-items:center;
+  min-height:470px;
+  padding:24px;
+  color:var(--muted);
+  text-align:center;
+}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mini-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+}
+.mini-card h3{
+  margin:0 0 8px;
+  color:var(--navy);
+  font-family:Georgia,serif;
+  font-size:24px;
+}
+.mini-card .stats-main{grid-template-columns:1fr 1fr 1fr}
+.mini-card .stats-secondary{grid-template-columns:1fr 1fr 1fr}
+.compare-note{margin:12px 0 0;color:var(--muted);font-size:13px}
+svg{width:100%;height:auto;display:block}
+@media (max-width:1100px){
+  .panel-grid{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .page{padding:18px 12px 24px}
+  .hero{grid-template-columns:1fr}
+  .hero-right{justify-items:start}
+  .title{font-size:34px}
+  .gender-inputs,.compare-grid,.stats-main,.stats-secondary,.mini-card .stats-secondary{grid-template-columns:1fr}
+  .panel{padding:16px}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">MBA Analytics • Statistical Sampling</div>
+      <h1 class="title">Salary Sampling Lab</h1>
+      <p class="subtitle">Draw random samples from a hidden salary population. Watch how the sample distribution changes from draw to draw, and compare separate random samples of women and men side by side.</p>
+    </div>
+  </div>
+
+  <section class="shell">
+    <div class="tabbar">
+      <button class="tab active" data-tab="overall" type="button">Overall salaries</button>
+      <button class="tab" data-tab="gender" type="button">Salaries by gender</button>
+    </div>
+
+    <section class="panel active" id="overallPanel">
+      <div class="panel-grid">
+        <aside class="sidebar">
+          <section class="card">
+            <h2 class="card-title">Draw a sample</h2>
+            <div class="controls">
+              <div class="control-grid">
+                <div class="control">
+                  <label for="overallSize">Sample size</label>
+                  <input id="overallSize" type="number" min="10" max="1000" step="10" value="120" />
+                  <small>Choose between 10 and 1,000</small>
+                </div>
+              </div>
+              <div class="control-grid">
+                <button class="primary" id="overallDraw" type="button">Draw overall sample</button>
+                <button class="secondary" id="overallDownload" type="button" disabled>Download sample</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="sample-tag" id="overallTag">No sample yet</div>
+            <h2 class="card-title" style="margin-top:6px">Summary</h2>
+            <div id="overallMetrics"></div>
+          </section>
+        </aside>
+
+        <section class="chart-card" id="overallChartWrap">
+          <div class="empty">Choose a sample size and draw a sample to see the histogram.</div>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel" id="genderPanel">
+      <div class="panel-grid">
+        <aside class="sidebar">
+          <section class="card">
+            <h2 class="card-title">Draw two samples</h2>
+            <div class="controls">
+              <div class="gender-inputs">
+                <div class="control">
+                  <label for="womenSize">Women sample size</label>
+                  <input id="womenSize" type="number" min="10" max="1000" step="10" value="120" />
+                  <small>Choose between 10 and 1,000</small>
+                </div>
+                <div class="control">
+                  <label for="menSize">Men sample size</label>
+                  <input id="menSize" type="number" min="10" max="1000" step="10" value="120" />
+                  <small>Choose between 10 and 1,000</small>
+                </div>
+              </div>
+              <div class="control-grid">
+                <button class="primary" id="genderDraw" type="button">Draw sample by gender</button>
+                <button class="secondary" id="genderDownload" type="button" disabled>Download sample</button>
+              </div>
+            </div>
+            <div class="chart-note">The sample sizes for women and men do not need to match. That makes it easy to explore unbalanced sampling.</div>
+          </section>
+        </aside>
+
+        <section>
+          <div class="compare-grid">
+            <section class="mini-card">
+              <div class="sample-tag mono" id="womenTag">No sample yet</div>
+              <h3>Women sample</h3>
+              <div id="womenMetrics"></div>
+            </section>
+            <section class="mini-card">
+              <div class="sample-tag mono" id="menTag">No sample yet</div>
+              <h3>Men sample</h3>
+              <div id="menMetrics"></div>
+            </section>
+          </div>
+          <div class="compare-grid" style="margin-top:18px">
+            <section class="chart-card" id="womenChartWrap">
+              <div class="empty">Draw a sample to compare women and men distributions side by side.</div>
+            </section>
+            <section class="chart-card" id="menChartWrap">
+              <div class="empty">Draw a sample to compare women and men distributions side by side.</div>
+            </section>
+          </div>
+          <div class="compare-note">Separate random samples can differ in both center and spread even when they are drawn from the same hidden source.</div>
+        </section>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script src="salary_ground_set.js"></script>
+<script>
+const state = { overallSample: [], genderSample: [] };
+const colors = { overall: "#2d978f", female: "#cf6440", male: "#4d6f9b" };
+const tabButtons = [...document.querySelectorAll(".tab")];
+const panels = { overall: document.getElementById("overallPanel"), gender: document.getElementById("genderPanel") };
+const currency = value => "£" + Math.round(value).toLocaleString("en-GB");
+const compact = value => Number.isFinite(value) ? value.toLocaleString("en-GB") : "—";
+
+function switchTab(tabId){
+  tabButtons.forEach(button => button.classList.toggle("active", button.dataset.tab === tabId));
+  Object.entries(panels).forEach(([id, panel]) => panel.classList.toggle("active", id === tabId));
+}
+tabButtons.forEach(button => button.addEventListener("click", () => switchTab(button.dataset.tab)));
+
+const population = window.SALARY_GROUND_SET?.records || [];
+
+const allSalaries = population.map(d => d.salary);
+const salaryMin = Math.floor(Math.min(...allSalaries) / 5000) * 5000;
+const salaryMax = Math.ceil(Math.max(...allSalaries) / 10000) * 10000;
+
+function sampleWithoutReplacement(source, n){
+  const size = Math.max(1, Math.min(source.length, Math.round(n)));
+  const indexed = source.map(item => ({ item, key: Math.random() }));
+  indexed.sort((a, b) => a.key - b.key);
+  return indexed.slice(0, size).map(d => d.item);
+}
+
+function clampSampleSize(value){
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 10;
+  return Math.max(10, Math.min(1000, Math.round(numeric)));
+}
+
+function quantile(sortedValues, q){
+  if (!sortedValues.length) return NaN;
+  const pos = (sortedValues.length - 1) * q;
+  const lower = Math.floor(pos);
+  const upper = Math.ceil(pos);
+  if (lower === upper) return sortedValues[lower];
+  const weight = pos - lower;
+  return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+}
+
+function describe(sample){
+  if (!sample.length) return null;
+  const values = sample.map(d => d.salary).slice().sort((a, b) => a - b);
+  const n = values.length;
+  const mean = values.reduce((sum, value) => sum + value, 0) / n;
+  const median = quantile(values, 0.5);
+  const q1 = quantile(values, 0.25);
+  const q3 = quantile(values, 0.75);
+  const min = values[0];
+  const max = values[n - 1];
+  const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / Math.max(1, n - 1);
+  const sd = Math.sqrt(variance);
+  return { n, mean, median, sd, min, q1, q3, max };
+}
+
+function statsMarkup(stats, compactMode){
+  if (!stats){
+    return '<div class="empty" style="min-height:220px">Draw a sample to populate the statistics.</div>';
+  }
+  const main = [
+    ["Sample size", compact(stats.n)],
+    ["Mean", currency(stats.mean)],
+    ["Median", currency(stats.median)]
+  ];
+  const secondary = [
+    ["Std. dev.", currency(stats.sd)],
+    ["Minimum", currency(stats.min)],
+    ["Maximum", currency(stats.max)]
+  ];
+  const mainHtml = main.map(([label, value]) =>
+    `<div class="stat${compactMode ? " compact" : ""}"><div class="label">${label}</div><div class="value">${value}</div></div>`
+  ).join("");
+  const secondaryHtml = secondary.map(([label, value]) =>
+    `<div class="stat compact"><div class="label">${label}</div><div class="value">${value}</div></div>`
+  ).join("");
+  return `<div class="stats-block"><div class="stats-main">${mainHtml}</div><div class="stats-secondary">${secondaryHtml}</div></div>`;
+}
+
+function computeHistogram(values, binCount, xMin, xMax){
+  const width = (xMax - xMin) / binCount;
+  const bins = Array.from({ length: binCount }, (_, index) => ({ start: xMin + index * width, end: xMin + (index + 1) * width, count: 0 }));
+  values.forEach(value => {
+    const rawIndex = Math.floor((value - xMin) / width);
+    const index = Math.max(0, Math.min(binCount - 1, rawIndex));
+    bins[index].count += 1;
+  });
+  return bins;
+}
+
+function renderHistogram(container, values, options){
+  if (!values.length){
+    container.innerHTML = '<div class="empty">No observations in this sample.</div>';
+    return;
+  }
+
+  const width = 760;
+  const height = 450;
+  const margin = { top: 38, right: 22, bottom: 58, left: 62 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const bins = computeHistogram(values, options.binCount || 18, options.xMin, options.xMax);
+  const maxCount = Math.max(1, ...bins.map(bin => bin.count));
+  const xTicks = options.xTicks || [50000, 100000, 150000, 200000, 250000, 300000];
+  const yTicks = Array.from({ length: 5 }, (_, i) => Math.round(maxCount * i / 4));
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const meanX = margin.left + (mean - options.xMin) / (options.xMax - options.xMin) * plotWidth;
+
+  const bars = bins.map((bin, index) => {
+    const slot = plotWidth / bins.length;
+    const barWidth = Math.max(8, slot - 4);
+    const x = margin.left + index * slot + (slot - barWidth) / 2;
+    const barHeight = bin.count / maxCount * plotHeight;
+    const y = margin.top + plotHeight - barHeight;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barHeight.toFixed(1)}" rx="3" fill="${options.color}" opacity="0.92"></rect>`;
+  }).join("");
+
+  const grid = yTicks.map(tick => {
+    const y = margin.top + plotHeight - (tick / maxCount * plotHeight);
+    return `<line x1="${margin.left}" y1="${y.toFixed(1)}" x2="${width - margin.right}" y2="${y.toFixed(1)}" stroke="#dde3e7" stroke-width="1"></line>
+            <text x="${margin.left - 12}" y="${(y + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="#607487">${tick}</text>`;
+  }).join("");
+
+  const xAxis = xTicks.map(tick => {
+    const x = margin.left + (tick - options.xMin) / (options.xMax - options.xMin) * plotWidth;
+    return `<line x1="${x.toFixed(1)}" y1="${margin.top + plotHeight}" x2="${x.toFixed(1)}" y2="${margin.top + plotHeight + 6}" stroke="#92a0ab"></line>
+            <text x="${x.toFixed(1)}" y="${height - 16}" text-anchor="middle" font-size="12" fill="#607487">${Math.round(tick / 1000)}k</text>`;
+  }).join("");
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${options.title}">
+      <text x="${margin.left}" y="24" fill="#10243f" font-family="Georgia,serif" font-size="28">${options.title}</text>
+      ${grid}
+      <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotHeight}" stroke="#8fa0ad" stroke-width="1.3"></line>
+      <line x1="${margin.left}" y1="${margin.top + plotHeight}" x2="${width - margin.right}" y2="${margin.top + plotHeight}" stroke="#8fa0ad" stroke-width="1.3"></line>
+      ${bars}
+      <line x1="${meanX.toFixed(1)}" y1="${margin.top + 6}" x2="${meanX.toFixed(1)}" y2="${margin.top + plotHeight}" stroke="#c89a2c" stroke-width="2.2" stroke-dasharray="6 5"></line>
+      <text x="${Math.min(width - margin.right - 30, meanX + 8).toFixed(1)}" y="${margin.top + 18}" font-size="12" fill="#8d6f19">Mean</text>
+      ${xAxis}
+      <text x="${width / 2}" y="${height - 2}" text-anchor="middle" font-size="14" fill="#607487">Annual salary (GBP)</text>
+      <text x="20" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="14" fill="#607487" transform="rotate(-90 20 ${margin.top + plotHeight / 2})">Count</text>
+    </svg>`;
+}
+
+function crc32(bytes){
+  let crc = -1;
+  for(let i = 0; i < bytes.length; i++){
+    crc ^= bytes[i];
+    for(let j = 0; j < 8; j++){
+      crc = (crc >>> 1) ^ (0xEDB88320 & -(crc & 1));
+    }
+  }
+  return (crc ^ -1) >>> 0;
+}
+function writeUint16(view, offset, value){ view.setUint16(offset, value, true); }
+function writeUint32(view, offset, value){ view.setUint32(offset, value, true); }
+function escapeXml(value){ return String(value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }
+function columnName(index){
+  let n = index + 1, name = "";
+  while(n > 0){
+    const rem = (n - 1) % 26;
+    name = String.fromCharCode(65 + rem) + name;
+    n = Math.floor((n - 1) / 26);
+  }
+  return name;
+}
+function buildSheetXml(sample){
+  const header = ["gender", "seniority", "salary"];
+  const rows = [header, ...sample.map(row => [row.gender, row.seniority, row.salary])];
+  const sheetRows = rows.map((row, rowIndex) => {
+    const cells = row.map((value, colIndex) => {
+      const ref = `${columnName(colIndex)}${rowIndex + 1}`;
+      if(typeof value === "number"){ return `<c r="${ref}"><v>${value}</v></c>`; }
+      return `<c r="${ref}" t="inlineStr"><is><t>${escapeXml(value)}</t></is></c>`;
+    }).join("");
+    return `<row r="${rowIndex + 1}">${cells}</row>`;
+  }).join("");
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetViews><sheetView workbookViewId="0"/></sheetViews>
+  <sheetFormatPr defaultRowHeight="15"/>
+  <cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="14" customWidth="1"/><col min="3" max="3" width="14" customWidth="1"/></cols>
+  <sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+}
+function createZip(files){
+  const encoder = new TextEncoder();
+  const fileEntries = files.map(file => ({ name:file.name, nameBytes:encoder.encode(file.name), dataBytes:encoder.encode(file.content), crc:crc32(encoder.encode(file.content)) }));
+  let localSize = 0, centralSize = 0;
+  fileEntries.forEach(entry => { localSize += 30 + entry.nameBytes.length + entry.dataBytes.length; centralSize += 46 + entry.nameBytes.length; });
+  const out = new Uint8Array(localSize + centralSize + 22);
+  const view = new DataView(out.buffer);
+  let offset = 0;
+  const centralRecords = [];
+  fileEntries.forEach(entry => {
+    const localOffset = offset;
+    writeUint32(view, offset, 0x04034b50); offset += 4;
+    writeUint16(view, offset, 20); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint32(view, offset, entry.crc); offset += 4;
+    writeUint32(view, offset, entry.dataBytes.length); offset += 4;
+    writeUint32(view, offset, entry.dataBytes.length); offset += 4;
+    writeUint16(view, offset, entry.nameBytes.length); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    out.set(entry.nameBytes, offset); offset += entry.nameBytes.length;
+    out.set(entry.dataBytes, offset); offset += entry.dataBytes.length;
+    centralRecords.push({ entry, localOffset });
+  });
+  const centralOffset = offset;
+  centralRecords.forEach(({ entry, localOffset }) => {
+    writeUint32(view, offset, 0x02014b50); offset += 4;
+    writeUint16(view, offset, 20); offset += 2;
+    writeUint16(view, offset, 20); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint32(view, offset, entry.crc); offset += 4;
+    writeUint32(view, offset, entry.dataBytes.length); offset += 4;
+    writeUint32(view, offset, entry.dataBytes.length); offset += 4;
+    writeUint16(view, offset, entry.nameBytes.length); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint16(view, offset, 0); offset += 2;
+    writeUint32(view, offset, 0); offset += 4;
+    writeUint32(view, offset, localOffset); offset += 4;
+    out.set(entry.nameBytes, offset); offset += entry.nameBytes.length;
+  });
+  const centralDirectorySize = offset - centralOffset;
+  writeUint32(view, offset, 0x06054b50); offset += 4;
+  writeUint16(view, offset, 0); offset += 2;
+  writeUint16(view, offset, 0); offset += 2;
+  writeUint16(view, offset, fileEntries.length); offset += 2;
+  writeUint16(view, offset, fileEntries.length); offset += 2;
+  writeUint32(view, offset, centralDirectorySize); offset += 4;
+  writeUint32(view, offset, centralOffset); offset += 4;
+  writeUint16(view, offset, 0); offset += 2;
+  return new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+}
+function buildWorkbookBlob(sample){
+  return createZip([
+    { name:"[Content_Types].xml", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>` },
+    { name:"_rels/.rels", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>` },
+    { name:"docProps/core.xml", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>salary_sample</dc:title><dc:creator>Codex</dc:creator></cp:coreProperties>` },
+    { name:"docProps/app.xml", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Codex</Application></Properties>` },
+    { name:"xl/workbook.xml", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sample" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+    { name:"xl/_rels/workbook.xml.rels", content:`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>` },
+    { name:"xl/worksheets/sheet1.xml", content:buildSheetXml(sample) }
+  ]);
+}
+function downloadSample(sample){
+  const blob = buildWorkbookBlob(sample);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "salary_sample.xlsx";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function drawOverall(){
+  const input = document.getElementById("overallSize");
+  const requested = clampSampleSize(input.value);
+  input.value = requested;
+  const sample = sampleWithoutReplacement(population, requested);
+  state.overallSample = sample;
+  const stats = describe(sample);
+  document.getElementById("overallTag").textContent = `n = ${compact(stats.n)}`;
+  document.getElementById("overallMetrics").innerHTML = statsMarkup(stats, false);
+  renderHistogram(document.getElementById("overallChartWrap"), sample.map(d => d.salary), {
+    title: "Overall sample salary distribution",
+    color: colors.overall,
+    xMin: salaryMin,
+    xMax: salaryMax
+  });
+}
+
+function drawGender(){
+  const womenInput = document.getElementById("womenSize");
+  const menInput = document.getElementById("menSize");
+  const womenRequested = clampSampleSize(womenInput.value);
+  const menRequested = clampSampleSize(menInput.value);
+  womenInput.value = womenRequested;
+  menInput.value = menRequested;
+  const womenPopulation = population.filter(d => d.gender === "Women");
+  const menPopulation = population.filter(d => d.gender === "Men");
+  const women = sampleWithoutReplacement(womenPopulation, womenRequested);
+  const men = sampleWithoutReplacement(menPopulation, menRequested);
+  state.genderSample = [...women, ...men];
+  const womenStats = describe(women);
+  const menStats = describe(men);
+  document.getElementById("womenTag").textContent = `n = ${compact(women.length)}`;
+  document.getElementById("menTag").textContent = `n = ${compact(men.length)}`;
+  document.getElementById("womenMetrics").innerHTML = statsMarkup(womenStats, true);
+  document.getElementById("menMetrics").innerHTML = statsMarkup(menStats, true);
+  renderHistogram(document.getElementById("womenChartWrap"), women.map(d => d.salary), {
+    title: "Women sample",
+    color: colors.female,
+    xMin: salaryMin,
+    xMax: salaryMax
+  });
+  renderHistogram(document.getElementById("menChartWrap"), men.map(d => d.salary), {
+    title: "Men sample",
+    color: colors.male,
+    xMin: salaryMin,
+    xMax: salaryMax
+  });
+}
+
+document.getElementById("overallDraw").addEventListener("click", () => {
+  drawOverall();
+  document.getElementById("overallDownload").disabled = !state.overallSample.length;
+  document.getElementById("overallDraw").disabled = true;
+});
+document.getElementById("genderDraw").addEventListener("click", () => {
+  drawGender();
+  document.getElementById("genderDownload").disabled = !state.genderSample.length;
+  document.getElementById("genderDraw").disabled = true;
+});
+document.getElementById("overallDownload").addEventListener("click", () => {
+  if (state.overallSample.length) downloadSample(state.overallSample);
+});
+document.getElementById("genderDownload").addEventListener("click", () => {
+  if (state.genderSample.length) downloadSample(state.genderSample);
+});
+</script>
+</body>
+</html>
