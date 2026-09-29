@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>R-square - Sales versus Advertising</title>
+<style>
+:root{
+  --navy:#102a43;
+  --blue:#3f78b5;
+  --gold:#d4a72c;
+  --green:#23836d;
+  --red:#c56b2c;
+  --ink:#263746;
+  --muted:#607487;
+  --paper:#f7f5ef;
+  --line:#d9e1e8;
+  --soft:#f1f5f8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+.page{max-width:1260px;margin:0 auto;padding:32px 36px 28px}
+.eyebrow{letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-size:12px;font-weight:700}
+.title{color:var(--navy);font-family:Georgia,serif;font-size:34px;margin:8px 0 4px}
+.subtitle{color:var(--muted);margin:0 0 24px;font-size:15px;line-height:1.45}
+.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(340px,.8fr);gap:22px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #102a4312;padding:18px}
+.chart-card{padding:16px 18px 14px}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:16px}
+.chart-head h2,.card h2{font-family:Georgia,serif;color:var(--navy);font-size:20px;margin:0}
+.hint{font-size:12px;color:var(--muted);text-align:right}
+svg{display:block;width:100%;height:auto;background:#fff;border-radius:6px}
+.axis{stroke:#8aa0b2;stroke-width:1}
+.grid{stroke:#e8edf1;stroke-width:1}
+.tick{fill:#607487;font-size:12px}
+.axis-label{fill:var(--navy);font-size:14px;font-weight:700}
+.section-label{fill:var(--navy);font-size:14px;font-weight:800}
+.small-label{fill:var(--muted);font-size:12px}
+.variance-label{font-size:14px;font-weight:800}
+.variance-label.actual{fill:var(--navy)}
+.variance-label.pred{fill:var(--red)}
+.scatter-dot{fill:var(--navy);stroke:#fff;stroke-width:2}
+.actual-dot{fill:var(--navy);stroke:#fff;stroke-width:2}
+.pred-dot{fill:var(--red);stroke:#fff;stroke-width:2}
+.fit-line{stroke:var(--blue);stroke-width:4;stroke-linecap:round}
+.mean-line{stroke:#8aa0b2;stroke-width:2.5;stroke-dasharray:7 6;stroke-linecap:round}
+.mapper{stroke:#c5d0da;stroke-width:1.4;stroke-dasharray:3 5;opacity:.75}
+.mapper.pred{stroke:var(--red);opacity:.35}
+.strip-axis{stroke:#9db0c0;stroke-width:2;stroke-linecap:round}
+.spread-line.actual{stroke:var(--navy);stroke-width:3;stroke-linecap:round}
+.spread-line.pred{stroke:var(--red);stroke-width:3;stroke-linecap:round}
+button{border:0;border-radius:8px;padding:12px 14px;font-weight:750;cursor:pointer;font-size:14px;text-align:left;background:#e8eef3;color:var(--navy)}
+button.active{background:var(--navy);color:white}
+button span{display:block;font-size:12px;font-weight:600;opacity:.72;margin-top:3px}
+.step-controls{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0 18px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.metric{background:var(--soft);border-radius:8px;padding:12px;min-height:76px}
+.metric .metric-label{font-size:12px;color:var(--muted);line-height:1.25}
+.metric .value{font-size:24px;font-weight:800;color:var(--navy);margin-top:5px;font-variant-numeric:tabular-nums}
+.metric.accent{background:#edf5fc}
+.metric.accent .value{color:var(--red)}
+.metric.gold{background:#fff5e8}
+.metric.gold .value{color:#b96818}
+.formula{font-family:Georgia,serif;color:var(--navy);background:#f7f9fb;border-left:4px solid var(--gold);padding:12px 14px;border-radius:6px;margin-top:14px;font-size:16px;line-height:1.45;min-height:70px}
+.bar-wrap{margin-top:16px;border-top:1px solid var(--line);padding-top:16px}
+.bar-title{font-size:13px;font-weight:750;color:var(--navy);margin-bottom:8px}
+.bar{height:26px;border-radius:6px;overflow:hidden;background:#f1c9b7;display:flex;border:1px solid #e0d8cf}
+.bar .captured{background:var(--red);width:0%;transition:width .35s ease}
+.bar .missing{background:#f1c9b7;flex:1}
+.bar-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}
+.note{font-size:13px;line-height:1.45;color:var(--muted);margin-top:12px}
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .page{padding:24px 16px}
+  .title{font-size:28px}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="eyebrow">Regression - model fit</div>
+  <h1 class="title">R-square as captured vertical spread</h1>
+  <p class="subtitle">Map the scatterplot into two vertical strips: original sales values and model-predicted sales values. R-square compares how much of the original vertical variability appears in the predictions.</p>
+
+  <section class="layout">
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h2>Sales (y) versus Advertising (x)</h2>
+        <span class="hint" id="chartHint">Map original y values into a vertical strip</span>
+      </div>
+      <svg id="plot" viewBox="0 0 920 520" role="img" aria-label="Interactive R-square visualization using actual and predicted vertical spreads"></svg>
+    </div>
+
+    <aside class="card">
+      <h2>Build the idea</h2>
+      <div class="step-controls">
+        <button id="step1" class="active" type="button">1. Original y<span>Total variability in the data</span></button>
+        <button id="step2" type="button">2. Predicted y<span>Variability captured by the model</span></button>
+        <button id="step3" type="button">3. Compare spreads<span>R-square is captured variation / total variation</span></button>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Variance of original y</div>
+          <div class="value" id="varY">-</div>
+        </div>
+        <div class="metric accent">
+          <div class="metric-label">Variance of predicted y</div>
+          <div class="value" id="varPred">-</div>
+        </div>
+        <div class="metric gold">
+          <div class="metric-label">Difference between variances</div>
+          <div class="value" id="varDiff">-</div>
+        </div>
+        <div class="metric accent">
+          <div class="metric-label">R-square</div>
+          <div class="value" id="r2">-</div>
+        </div>
+      </div>
+
+      <div class="formula" id="formula">Original y: how spread out are the actual sales values?</div>
+
+      <div class="bar-wrap">
+        <div class="bar-title">Fraction of original variance captured</div>
+        <div class="bar" aria-label="Captured and uncaptured variance bar">
+          <div class="captured" id="capturedBar"></div>
+          <div class="missing"></div>
+        </div>
+        <div class="bar-labels">
+          <span>captured by predicted y</span>
+          <span>difference</span>
+        </div>
+      </div>
+      <div class="note" id="note">Each dark point is moved horizontally into the original-y strip while keeping the same sales value.</div>
+    </aside>
+  </section>
+</main>
+
+<script>
+const points=[
+  [0.50,23.55],[0.58,24.05],[0.70,24.95],[0.90,24.95],[1.10,25.05],[1.30,25.25],
+  [1.40,26.05],[1.45,28.05],[1.55,27.20],[1.55,26.15],[1.70,25.15],[1.80,26.55],
+  [2.00,27.10],[2.10,27.55],[2.30,28.05]
+];
+
+const svg=document.getElementById("plot");
+const W=920,H=520;
+const plot={l:62,r:500,t:34,b:450};
+const xMin=0,xMax=2.5,yMin=22,yMax=29;
+const actualX=650;
+const predX=805;
+const stripTop=plot.t;
+const stripBottom=plot.b;
+const sx=x=>plot.l+(x-xMin)/(xMax-xMin)*(plot.r-plot.l);
+const sy=y=>plot.b-(y-yMin)/(yMax-yMin)*(plot.b-plot.t);
+const mean=arr=>arr.reduce((a,b)=>a+b,0)/arr.length;
+const variance=arr=>{
+  const m=mean(arr);
+  return arr.reduce((s,v)=>s+(v-m)*(v-m),0)/arr.length;
+};
+
+const yValues=points.map(p=>p[1]);
+const ybar=mean(yValues);
+const xbar=mean(points.map(p=>p[0]));
+const slope=points.reduce((s,[x,y])=>s+(x-xbar)*(y-ybar),0)/points.reduce((s,[x])=>s+(x-xbar)*(x-xbar),0);
+const intercept=ybar-slope*xbar;
+const predicted=points.map(([x])=>intercept+slope*x);
+const predMean=mean(predicted);
+const varY=variance(yValues);
+const varPred=variance(predicted);
+const varDiff=Math.max(0,varY-varPred);
+const r2=varPred/varY;
+const sdY=Math.sqrt(varY);
+const sdPred=Math.sqrt(varPred);
+
+let step=1;
+const buttons=["step1","step2","step3"].map(id=>document.getElementById(id));
+const chartHint=document.getElementById("chartHint");
+const varYEl=document.getElementById("varY");
+const varPredEl=document.getElementById("varPred");
+const varDiffEl=document.getElementById("varDiff");
+const r2El=document.getElementById("r2");
+const formula=document.getElementById("formula");
+const note=document.getElementById("note");
+const capturedBar=document.getElementById("capturedBar");
+
+function el(tag,attrs={}){
+  const n=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(const [k,v] of Object.entries(attrs)) n.setAttribute(k,v);
+  return n;
+}
+
+function line(x1,y1,x2,y2,cls,attrs={}){
+  return el("line",{x1,y1,x2,y2,class:cls,...attrs});
+}
+
+function text(x,y,value,attrs={}){
+  const t=el("text",{x,y,...attrs});
+  t.textContent=value;
+  return t;
+}
+
+function jitter(i){
+  return [-10,7,-4,12,-8,3,10,-12,5,-6,11,-2,8,-9,4][i%15];
+}
+
+function drawAxes(){
+  for(let x=0;x<=2.5;x+=0.5){
+    svg.append(line(sx(x),sy(yMin),sx(x),sy(yMax),"grid"));
+    svg.append(text(sx(x),plot.b+25,x.toFixed(1),{"text-anchor":"middle",class:"tick"}));
+  }
+  for(let y=22;y<=29;y++){
+    svg.append(line(sx(xMin),sy(y),sx(xMax),sy(y),"grid"));
+    svg.append(text(plot.l-12,sy(y)+4,y,{"text-anchor":"end",class:"tick"}));
+  }
+  svg.append(line(sx(xMin),sy(yMin),sx(xMax),sy(yMin),"axis"));
+  svg.append(line(sx(xMin),sy(yMin),sx(xMin),sy(yMax),"axis"));
+  svg.append(text((sx(xMin)+sx(xMax))/2,H-16,"Advertising (x)",{"text-anchor":"middle",class:"axis-label"}));
+  svg.append(text(18,(sy(yMin)+sy(yMax))/2,"Sales (y)",{
+    transform:"rotate(-90 18 "+((sy(yMin)+sy(yMax))/2)+")",
+    "text-anchor":"middle",
+    class:"axis-label"
+  }));
+
+  svg.append(line(actualX,stripTop,actualX,stripBottom,"strip-axis"));
+  svg.append(line(predX,stripTop,predX,stripBottom,"strip-axis"));
+  svg.append(text(actualX,22,"Original y",{"text-anchor":"middle",class:"section-label"}));
+  svg.append(text(predX,22,"Predicted y",{"text-anchor":"middle",class:"section-label"}));
+
+  svg.append(line(plot.l,sy(ybar),855,sy(ybar),"mean-line"));
+  svg.append(text(858,sy(ybar)+4,"mean",{"text-anchor":"start",class:"small-label"}));
+}
+
+function drawScatter(){
+  const fitPath="M "+sx(xMin)+" "+sy(intercept+slope*xMin)+" L "+sx(xMax)+" "+sy(intercept+slope*xMax);
+  if(step>=2) svg.append(el("path",{d:fitPath,class:"fit-line"}));
+  for(const [x,y] of points){
+    svg.append(el("circle",{cx:sx(x),cy:sy(y),r:6,class:"scatter-dot"}));
+  }
+}
+
+function drawActualStrip(showConnectors=true){
+  points.forEach(([x,y],i)=>{
+    const stripDotX=actualX+jitter(i);
+    if(showConnectors) svg.append(line(sx(x),sy(y),stripDotX,sy(y),"mapper"));
+    svg.append(el("circle",{cx:stripDotX,cy:sy(y),r:6,class:"actual-dot"}));
+  });
+}
+
+function drawPredictedStrip(showConnectors=true){
+  points.forEach(([x,y],i)=>{
+    const yhat=predicted[i];
+    const yhatOnLineX=sx(x);
+    const stripDotX=predX+jitter(i);
+    if(showConnectors) svg.append(line(yhatOnLineX,sy(yhat),stripDotX,sy(yhat),"mapper pred"));
+    svg.append(el("circle",{cx:stripDotX,cy:sy(yhat),r:6,class:"pred-dot"}));
+  });
+}
+
+function drawSpreadBand(centerX,meanValue,sd,kind,labelText){
+  const top=sy(meanValue+sd);
+  const bottom=sy(meanValue-sd);
+  const width=82;
+  svg.append(line(centerX-width/2-10,top,centerX-width/2-10,bottom,"spread-line "+kind));
+  svg.append(line(centerX-width/2-17,top,centerX-width/2-3,top,"spread-line "+kind));
+  svg.append(line(centerX-width/2-17,bottom,centerX-width/2-3,bottom,"spread-line "+kind));
+  svg.append(text(centerX,stripBottom+40,labelText,{"text-anchor":"middle",class:"variance-label "+kind}));
+}
+
+function draw(){
+  svg.replaceChildren();
+  drawAxes();
+  drawScatter();
+  if(step===1) drawActualStrip(true);
+  if(step===2) {
+    drawActualStrip(false);
+    drawPredictedStrip(true);
+  }
+  if(step===3) {
+    drawActualStrip(false);
+    drawPredictedStrip(false);
+  }
+  if(step===1) drawSpreadBand(actualX,ybar,sdY,"actual","σ² = "+varY.toFixed(2));
+  if(step===2) drawSpreadBand(predX,predMean,sdPred,"pred","σ² = "+varPred.toFixed(2));
+  if(step===3){
+    drawSpreadBand(actualX,ybar,sdY,"actual","σ² = "+varY.toFixed(2));
+    drawSpreadBand(predX,predMean,sdPred,"pred","σ² = "+varPred.toFixed(2));
+  }
+}
+
+function updateText(){
+  buttons.forEach((button,i)=>button.classList.toggle("active",i+1===step));
+  varYEl.textContent=varY.toFixed(2);
+
+  if(step===1){
+    chartHint.textContent="Actual outcomes, same y-scale";
+    varPredEl.textContent="-";
+    varDiffEl.textContent="-";
+    r2El.textContent="-";
+    formula.textContent="Original y: how spread out are the actual sales values?";
+    note.textContent="Each dark point is moved horizontally into the original-y strip while keeping the same sales value.";
+    capturedBar.style.width="0%";
+  }
+
+  if(step===2){
+    chartHint.textContent="Predictions, same y-scale";
+    varPredEl.textContent=varPred.toFixed(2);
+    varDiffEl.textContent="-";
+    r2El.textContent="-";
+    formula.textContent="Predicted y: the fitted line turns each advertising value into a predicted sales value.";
+    note.textContent="The blue strip shows the variability captured by the model. It is less spread out than the original outcomes.";
+    capturedBar.style.width="0%";
+  }
+
+  if(step===3){
+    chartHint.textContent="Compare vertical spreads";
+    varPredEl.textContent=varPred.toFixed(2);
+    varDiffEl.textContent=varDiff.toFixed(2);
+    r2El.textContent=(100*r2).toFixed(1)+"%";
+    formula.textContent="R-square = Var(predicted y) / Var(original y) = "+(100*r2).toFixed(1)+"%";
+    note.textContent="The remaining difference is variation in sales that the line does not capture.";
+    capturedBar.style.width=(100*r2).toFixed(1)+"%";
+  }
+}
+
+function setStep(nextStep){
+  step=nextStep;
+  draw();
+  updateText();
+}
+
+buttons.forEach((button,i)=>button.addEventListener("click",()=>setStep(i+1)));
+setStep(1);
+</script>
+</body>
+</html>
