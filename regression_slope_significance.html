@@ -88,7 +88,6 @@ button:disabled{opacity:.5;cursor:default}
       <h2>Test the slope</h2>
       <div class="controls">
         <button class="primary" id="drawOne" type="button">Draw sample</button>
-        <button id="drawMany" type="button">Animate 20 samples</button>
         <button id="reset" type="button">Reset</button>
       </div>
 
@@ -132,7 +131,6 @@ let seed=20260811;
 let currentSample=[];
 let currentFit=null;
 let history=[];
-let animating=false;
 
 const sx=x=>m.l+(x-xMin)/(xMax-xMin)*(W-m.l-m.r);
 const sy=y=>H-m.b-(y-yMin)/(yMax-yMin)*(H-m.t-m.b);
@@ -148,7 +146,6 @@ const verdictBox=document.getElementById("verdictBox");
 const formula=document.getElementById("formula");
 const equation=document.getElementById("equation");
 const drawOne=document.getElementById("drawOne");
-const drawMany=document.getElementById("drawMany");
 const reset=document.getElementById("reset");
 
 function rand(){
@@ -255,7 +252,7 @@ function drawSlopePlot(){
     slopePlot.append(el("circle",{cx:psx(currentFit.b),cy:82,r:8,class:"slope-dot"}));
   }
 
-  slopePlot.append(text(195,152,"Slopes from repeated samples",{"text-anchor":"middle",class:"label"}));
+  slopePlot.append(text(195,152,"Slopes from random samples",{"text-anchor":"middle",class:"label"}));
   slopePlot.append(line(psx(slopeMin),197,psx(slopeMax),197,"axis"));
   slopePlot.append(line(psx(0),172,psx(0),220,"zero-line"));
   history.slice(-44).forEach((fitObj,i,arr)=>{
@@ -304,22 +301,7 @@ function drawFreshSample(){
   render();
 }
 
-async function animateSamples(count){
-  if(animating) return;
-  animating=true;
-  drawOne.disabled=true;
-  drawMany.disabled=true;
-  for(let i=0;i<count;i++){
-    drawFreshSample();
-    await new Promise(resolve=>setTimeout(resolve,170));
-  }
-  drawOne.disabled=false;
-  drawMany.disabled=false;
-  animating=false;
-}
-
 drawOne.addEventListener("click",drawFreshSample);
-drawMany.addEventListener("click",()=>animateSamples(20));
 reset.addEventListener("click",()=>{
   currentSample=[];
   currentFit=null;
